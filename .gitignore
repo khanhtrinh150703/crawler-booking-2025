@@ -1,0 +1,187 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.pyw
+.Python
+env/
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.hypothesis/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# === Virtual Environment ===
+# Virtualenv
+venv/
+ENV/
+env/
+.venv/
+
+# Pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
+
+# === IDE / Editors ===
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# PyCharm
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+.elc
+auto-save-list/
+tramp
+.\#*
+
+# === OS / System ===
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.nfs*
+
+# === Project Specific ===
+# Dữ liệu, file đầu ra
+data/
+output/
+downloads/
+logs/
+*.csv
+*.json
+*.txt
+*.log
+*.sqlite3
+*.db
+*.png
+
+# File lỗi, backup
+errors_detected_*/
+invalid_*.txt
+*.bak
+*.tmp
+*.temp
+
+# Venv
+/myenv
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Build / Dist
+build/
+dist/
+*.egg
+*.egg-info/
+.eggs/
+*.manifest
+*.spec
+
+# Cython
+*.c
+*.cpp
+*.so
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Django (nếu có)
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask
+instance/
+.webassets-cache
+
+# Scrapy
+.scrapy
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath
+*.sage.py
+
+# Environments
+.env
+.env.local
+.env.*.local
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# End of file
