@@ -1,125 +1,79 @@
+# main.py
 import os
-import shutil
+from config import *
+from utils.helpers import ensure_dir, get_timestamp, get_main_error_dir  # <<< ĐÃ SỬA
+from core.processor import get_folders_to_process, process_range_folder, process_province_folder
+from core.reporter import write_unit_log, write_summary, write_province_review_stats
+from core.excel_exporter import export_to_excel
 from datetime import datetime
-
-from error.check_json import check_invalid_evaluation_categories, process_json_file
-
-# ================== CẤU HÌNH ==================
-ROOT_DIR = r"D:\private\crawler-booking-2025\src\crawler_hotel\data"
-ERROR_ROOT_DIR = "errors_detected"
-LOG_DIR = "output_logs"  # <<<< THÊM DÒNG NÀY
-
-MODE = "copy"
 
 def main():
     if not os.path.exists(ROOT_DIR):
         print(f"Thư mục không tồn tại: {ROOT_DIR}")
         return
 
-    # Tạo thư mục log chính
-    os.makedirs(LOG_DIR, exist_ok=True)
-    print(f"Tất cả log sẽ được lưu vào: {LOG_DIR}/")
-
-    # Tạo thư mục lỗi chính (nếu copy)
+    # Tạo timestamp MỚI cho lần chạy này
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
     main_error_dir = f"{ERROR_ROOT_DIR}_{timestamp}"
+
+    # Tạo các thư mục cần thiết
+    for dir_path in [LOG_ROOT_DIR, LOG_DIR_INVALID, LOG_DIR_SUMMARY, EXCEL_DIR]:
+        ensure_dir(dir_path)
+
+    # Tạo thư mục lỗi nếu MODE == "copy"
     if MODE == "copy":
-        os.makedirs(main_error_dir, exist_ok=True)
-        print(f"Tạo thư mục lỗi chính: {main_error_dir}")
+        ensure_dir(main_error_dir)
+        print(f"Thư mục lỗi sẽ được tạo tại: {main_error_dir}")
+        
+    timestamp = get_timestamp()
+    main_error_dir = f"{ERROR_ROOT_DIR}_{timestamp}"
+    error_dir_created = False
 
-    total_error_count = 0
-    range_results = {}
+    total_processed = total_errors = total_reviews = 0
+    results = {}
+    province_stats = {}
 
-    print("Bắt đầu quét các range...")
+    print(f"Bắt đầu quét theo: {PROCESS_BY.upper()}...")
 
-    for range_folder in sorted(os.listdir(ROOT_DIR)):
-        range_path = os.path.join(ROOT_DIR, range_folder)
-        if not os.path.isdir(range_path):
-            continue
+    folders = get_folders_to_process()
 
-        if not ('-' in range_folder and range_folder.replace('-', '').isdigit()):
-            print(f"Bỏ qua thư mục không phải range: {range_folder}")
-            continue
+    for name, path in folders:
+        print(f"\n--- Đang xử lý {'range' if PROCESS_BY == 'range' else 'tỉnh'}: {name} ---")
 
-        print(f"\n--- Đang xử lý range: {range_folder} ---")
-        range_error_count = 0
-        range_log_lines = []
+        if PROCESS_BY == "range":
+            err, rev, lines, error_dir_created = process_range_folder(name, path, main_error_dir, error_dir_created)
+            log_file = write_unit_log(name, err, rev, lines, is_range=True)
+        else:
+            err, rev, lines, error_dir_created = process_province_folder(name, path, main_error_dir, error_dir_created)
+            log_file = write_unit_log(name, err, rev, lines, is_range=False)
+            province_stats[name] = rev
 
-        range_error_dir = None
-        if MODE == "copy":
-            range_error_dir = os.path.join(main_error_dir, range_folder)
-            os.makedirs(range_error_dir, exist_ok=True)
+        total_errors += err
+        total_reviews += rev
+        total_processed += sum(1 for f in os.listdir(path) if f.endswith(".json"))
+        results[name] = {"count": err, "reviews": rev, "log_file": log_file}
 
-        for province_folder in os.listdir(range_path):
-            province_path = os.path.join(range_path, province_folder)
-            if not os.path.isdir(province_path):
-                continue
+        print(f"{'Range' if PROCESS_BY == 'range' else 'Tỉnh'} {name}: {err} lỗi, {rev} reviews")
 
-            province_error_dir = None
-            if MODE == "copy":
-                province_error_dir = os.path.join(range_error_dir, province_folder)
-                os.makedirs(province_error_dir, exist_ok=True)
+    # Báo cáo tổng
+    write_summary(total_processed, total_errors, total_reviews, results)
+    if PROCESS_BY == "province":
+        write_province_review_stats(province_stats, total_reviews)
 
-            for json_file in os.listdir(province_path):
-                if not json_file.endswith(".json"):
-                    continue
+    # Xuất Excel
+    export_to_excel()
 
-                file_path = os.path.join(province_path, json_file)
-                has_error, reason = process_json_file(file_path)
-
-                if has_error:
-                    range_error_count += 1
-                    total_error_count += 1
-                    rel_path = f"{range_folder}/{province_folder}/{json_file}"
-                    log_line = f"{rel_path}  [{reason}]"
-                    range_log_lines.append(log_line)
-
-                    if MODE == "copy":
-                        dest_file = os.path.join(province_error_dir, json_file)
-                        shutil.copy2(file_path, dest_file)
-
-        # GHI LOG VÀO THƯ MỤC output_logs/
-        range_log_file = os.path.join(LOG_DIR, f"invalid_hotels_{range_folder}.txt")
-        with open(range_log_file, 'w', encoding='utf-8') as f:
-            if range_error_count > 0:
-                f.write(f"RANGE: {range_folder}\n")
-                f.write(f"TỔNG SỐ FILE LỖI: {range_error_count}\n")
-                f.write(f"CHẾ ĐỘ: {MODE.upper()}\n")
-                f.write(f"THỜI GIAN: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                f.write("="*60 + "\n\n")
-                for line in range_log_lines:
-                    f.write(line + "\n")
-            else:
-                f.write(f"RANGE: {range_folder}\n")
-                f.write("KHÔNG TÌM THẤY FILE NÀO CÓ LỖI.\n")
-
-        range_results[range_folder] = {
-            "count": range_error_count,
-            "log_file": range_log_file
-        }
-
-        print(f"Range {range_folder}: {range_error_count} file lỗi → {range_log_file}")
-
-    # GHI TỔNG HỢP VÀO output_logs/
-    summary_file = os.path.join(LOG_DIR, "invalid_hotels_summary.txt")
-    with open(summary_file, 'w', encoding='utf-8') as f:
-        f.write(f"TỔNG HỢP LỖI THEO RANGE\n")
-        f.write(f"THỜI GIAN: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"CHẾ ĐỘ: {MODE.upper()}\n")
-        f.write(f"TỔNG SỐ FILE LỖI: {total_error_count}\n")
-        f.write("="*60 + "\n\n")
-        for range_folder, info in sorted(range_results.items()):
-            status = "CÓ LỖI" if info["count"] > 0 else "KHÔNG LỖI"
-            log_name = os.path.basename(info["log_file"])
-            f.write(f"{range_folder}: {info['count']} file → {log_name} [{status}]\n")
-
+    # Kết quả cuối
+    error_rate = (total_errors / total_processed * 100) if total_processed > 0 else 0
     print("\n" + "="*60)
     print("HOÀN TẤT!")
-    print(f" - Tổng file lỗi: {total_error_count}")
-    print(f" - Tất cả log đã lưu vào: {LOG_DIR}/")
-    if MODE == "copy" and total_error_count > 0:
-        print(f" - File lỗi đã được sao chép vào: {main_error_dir}/")
+    print(f" - Tổng file: {total_processed} | Lỗi: {total_errors} | Reviews: {total_reviews}")
+    print(f" - Tỷ lệ lỗi: {error_rate:.2f}%")
+    print(f" - Log: {LOG_ROOT_DIR}/")
+    if MODE == "copy" and total_errors:
+        print(f" - File lỗi: {main_error_dir}/")
     print("="*60)
+
 
 if __name__ == "__main__":
     main()

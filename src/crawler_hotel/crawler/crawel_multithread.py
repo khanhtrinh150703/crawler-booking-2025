@@ -305,10 +305,10 @@ if __name__ == "__main__":
     freeze_support()
 
     # === CẤU HÌNH CHUNG ===
-    base_input_dir = r"D:\private\crawler-booking-2025\src\crawler_province\hotel_test"
-    output_dir = "data_test"
+    base_input_dir = r"D:\private\crawler-booking-2025\src\crawler_province\hotel_one_province"
+    output_dir = "data_multithread"
 
-    MAX_WORKERS = 3
+    MAX_WORKERS = 4
     MAX_RUNTIME_MINUTES = None  # None = chạy đến khi nhấn Enter
 
     # === LẤY DANH SÁCH RANGE THEO THỨ TỰ ===
