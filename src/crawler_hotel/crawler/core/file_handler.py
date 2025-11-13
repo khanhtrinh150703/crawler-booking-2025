@@ -1,7 +1,7 @@
 # core/file_handler.py
 import os
 import shutil
-from config import MODE, LOG_DIR_INVALID, LOG_DIR_SUMMARY
+from config.config import MODE, LOG_DIR_INVALID, LOG_DIR_SUMMARY
 from utils.helpers import ensure_dir
 
 def copy_error_file(file_path, main_error_dir, *path_parts):

@@ -1,6 +1,6 @@
 # core/reporter.py
 import os
-from config import LOG_DIR_INVALID, LOG_DIR_SUMMARY, FILE_SUMMARY, MODE, PROCESS_BY
+from config.config import LOG_DIR_INVALID, LOG_DIR_SUMMARY, FILE_SUMMARY, MODE, PROCESS_BY
 from core.file_handler import write_invalid_log, write_summary_log
 from utils.helpers import get_timestamp
 

@@ -2,7 +2,7 @@
 import os
 import pandas as pd
 from error.check_json import process_json_file
-from config import ROOT_DIR, EXCEL_DIR, EXCEL_NAME
+from config.config import ROOT_DIR, EXCEL_DIR, EXCEL_NAME
 from utils.helpers import ensure_dir
 
 # core/excel_exporter.py

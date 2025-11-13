@@ -111,6 +111,7 @@ logs/
 *.sqlite3
 *.db
 *.png
+*.xlsx
 
 # File lỗi, backup
 errors_detected_*/

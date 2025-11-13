@@ -1,7 +1,7 @@
 # core/processor.py
 import os
 from error.check_json import process_json_file
-from config import ROOT_DIR, MODE, PROCESS_BY
+from config.config import ROOT_DIR, MODE, PROCESS_BY
 from core.file_handler import copy_error_file
 from utils.helpers import is_valid_range_folder
 

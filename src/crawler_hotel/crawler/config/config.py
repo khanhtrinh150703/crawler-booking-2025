@@ -2,10 +2,12 @@
 import os
 
 # ====================== ĐƯỜNG DẪN ======================
-ROOT_DIR = r"D:\private\crawler-booking\data"
+ROOT_DIR = r"D:\private\crawler-booking-2025\src\crawler_hotel\data_final"
+
+# ROOT_DIR = r"D:\private\crawler-booking\data"
 
 # Thư mục GỐC lưu trữ (logs, errors, excel)
-BASE_OUTPUT_DIR = r"D:\private\crawler-booking-2025\src\crawler_hotel\crawler\output"
+BASE_OUTPUT_DIR = r"D:\private\crawler-booking-2025\src\crawler_hotel\crawler\output_2025"
 
 # --- LOGS ---
 LOG_ROOT_DIR = os.path.join(BASE_OUTPUT_DIR, "logs")

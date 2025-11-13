@@ -1,7 +1,7 @@
 # main.py
 import os
-from config import *
-from utils.helpers import ensure_dir, get_timestamp, get_main_error_dir  # <<< ĐÃ SỬA
+from config.config import *
+from utils.helpers import ensure_dir, get_timestamp, get_main_error_dir  
 from core.processor import get_folders_to_process, process_range_folder, process_province_folder
 from core.reporter import write_unit_log, write_summary, write_province_review_stats
 from core.excel_exporter import export_to_excel
