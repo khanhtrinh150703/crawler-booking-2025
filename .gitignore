@@ -112,6 +112,8 @@ logs/
 *.db
 *.png
 *.xlsx
+*.zip
+*.rar
 
 # File lỗi, backup
 errors_detected_*/
