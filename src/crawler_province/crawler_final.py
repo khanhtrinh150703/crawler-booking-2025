@@ -15,8 +15,8 @@ logging.getLogger('selenium').setLevel(logging.CRITICAL + 1)
 os.environ['WDM_LOG_LEVEL'] = '0'
 
 # === FILE & THƯ MỤC ===
-URLS_FILE = "provinces.txt"
-MAIN_FOLDER = "hotel_links"
+URLS_FILE = "provinces_2.txt"
+MAIN_FOLDER = "hotel_links_city"
 
 if not os.path.exists(URLS_FILE):
     print(f"KHÔNG TÌM THẤY: {URLS_FILE}")
@@ -196,23 +196,40 @@ for search_url, display_name, folder_name in urls_list:
 
             hotel_links.add(clean_url)
 
-        # Bước 5: Lưu file – GIỚI HẠN ≤ max_properties
+                # Bước 5: LƯU FILE – CHỈ GIỚI HẠN KHI CÀO, FILE TXT THÌ GIỮ HẾT MÃI MÃI
         filename = f"{folder_name}_hotel_links.txt"
         filepath = os.path.join(folder_path, filename)
 
+        # 1. Đọc toàn bộ link cũ (nếu có)
+        old_links = set()
+        if os.path.exists(filepath):
+            with open(filepath, "r", encoding="utf-8") as f_old:
+                for line in f_old:
+                    ln = line.strip()
+                    if ln.startswith("http"):
+                        old_links.add(ln)
+            print(f"Đã tìm thấy file cũ → {len(old_links)} link hiện có")
+        else:
+            print("Chưa có file cũ → tạo mới")
+
+        # 2. Thêm tất cả link mới thu thập được (loại trùng tự động)
+        before = len(old_links)
+        old_links.update(hotel_links)  # set → tự loại trùng
+        new_added = len(old_links) - before
+
+        # 3. GHI LẠI TOÀN BỘ – KHÔNG BAO GIỜ CẮT, KHÔNG BAO GIỜ GIỚI HẠN
+        final_links = sorted(old_links)  # sắp xếp lại cho đẹp (tùy chọn)
+
         with open(filepath, "w", encoding="utf-8") as f:
-            count = 0
-            for link in sorted(hotel_links):
-                if max_properties is None or count < max_properties:
-                    f.write(link + "\n")
-                    count += 1
-                else:
-                    break
+            for link in final_links:
+                f.write(link + "\n")
 
-        actual_saved = min(len(hotel_links), max_properties) if max_properties else len(hotel_links)
-        print(f"HOÀN TẤT! → Lưu {actual_saved}/{len(hotel_links)} khách sạn (giới hạn: {max_properties or 'không giới hạn'})")
-        print(f"Lưu vào: {filepath}")
+        print(f"HOÀN TẤT! → Đã thêm {new_added} link mới")
+        print(f"Tổng cộng hiện tại: {len(final_links)} link (không giới hạn)")
+        print(f"File: {filepath}")
 
+        if new_added == 0:
+            print("→ Không có link mới (đã cào hết từ trước hoặc Booking.com đang hiển thị ít hơn thực tế)")
     except Exception as e:
         print(f"LỖI KHI XỬ LÝ {display_name}: {e}")
     finally:

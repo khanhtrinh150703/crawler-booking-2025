@@ -62,7 +62,7 @@ def group_by_link_range(input_root, output_root):
 
 # ====================== CHỈ SỬA 1 DÒNG ======================
 if __name__ == "__main__":
-    INPUT_FOLDER = r"D:\private\crawler-booking-2025\src\crawler_province\hotel_links"
+    INPUT_FOLDER = r"D:\private\crawler-booking-2025\src\crawler_hotel\crawler\province_crawler_again"
     OUTPUT_FOLDER = r"D:\private\crawler-booking-2025\src\crawler_province\hotel_group_by_range"
 
     group_by_link_range(INPUT_FOLDER, OUTPUT_FOLDER)

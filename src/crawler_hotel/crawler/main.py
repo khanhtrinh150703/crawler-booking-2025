@@ -12,7 +12,6 @@ from modes.mode1 import run_mode1
 from modes.mode2 import run_mode2
 from utils.helpers import setup_auto_stop, setup_manual_stop, show_menu
 
-
 def main():
     choice = show_menu()
     if choice == '0':

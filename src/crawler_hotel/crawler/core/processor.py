@@ -5,8 +5,10 @@ from config.config import ROOT_DIR, MODE, PROCESS_BY
 from core.file_handler import copy_error_file
 from utils.helpers import is_valid_range_folder
 
+# core/processor.py
+
 def process_range_folder(range_folder, range_path, main_error_dir, error_dir_created):
-    error_count = review_count = 0
+    error_count = review_count = viet_positive_total = 0
     log_lines = []
 
     for province_folder in os.listdir(range_path):
@@ -19,8 +21,9 @@ def process_range_folder(range_folder, range_path, main_error_dir, error_dir_cre
                 continue
 
             file_path = os.path.join(province_path, json_file)
-            has_error, reason, reviews, _, _, _ = process_json_file(file_path)
+            has_error, reason, reviews, _, _, _, viet_pos = process_json_file(file_path)
             review_count += reviews
+            viet_positive_total += viet_pos  # ← CỘNG DỒN
 
             if has_error:
                 error_count += 1
@@ -32,11 +35,11 @@ def process_range_folder(range_folder, range_path, main_error_dir, error_dir_cre
                         file_path, main_error_dir, range_folder, province_folder
                     ) or error_dir_created
 
-    return error_count, review_count, log_lines, error_dir_created
+    return error_count, review_count, viet_positive_total, log_lines, error_dir_created
 
 
 def process_province_folder(province_folder, province_path, main_error_dir, error_dir_created):
-    error_count = review_count = 0
+    error_count = review_count = viet_positive_total = 0
     log_lines = []
 
     for json_file in os.listdir(province_path):
@@ -44,8 +47,9 @@ def process_province_folder(province_folder, province_path, main_error_dir, erro
             continue
 
         file_path = os.path.join(province_path, json_file)
-        has_error, reason, reviews, _, _, _ = process_json_file(file_path)
+        has_error, reason, reviews, _, _, _, viet_pos = process_json_file(file_path)
         review_count += reviews
+        viet_positive_total += viet_pos  # ← CỘNG DỒN
 
         if has_error:
             error_count += 1
@@ -57,8 +61,7 @@ def process_province_folder(province_folder, province_path, main_error_dir, erro
                     file_path, main_error_dir, province_folder
                 ) or error_dir_created
 
-    return error_count, review_count, log_lines, error_dir_created
-
+    return error_count, review_count, viet_positive_total, log_lines, error_dir_created
 
 def get_folders_to_process():
     folders = []

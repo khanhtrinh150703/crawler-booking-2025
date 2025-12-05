@@ -160,7 +160,7 @@ def crawl_hotel_chunk(args):
 # ================================
 # HÀM CHẠY MỘT TỈNH VỚI NHIỀU PROCESS
 # ================================
-def crawl_province_with_workers(province_path, output_dir, max_workers=3, max_runtime_minutes=None):
+# def crawl_province_with_workers(province_path, output_dir, max_workers=3, max_runtime_minutes=None):
     province_name = os.path.basename(province_path)
     logger = logging.getLogger(f"Province-{province_name}")
     logger.info(f"Starting province: {province_name} with {max_workers} workers")
@@ -256,7 +256,185 @@ def crawl_province_with_workers(province_path, output_dir, max_workers=3, max_ru
 
     logger.info(f"Province {province_name} DONE: {total_success}/{total_processed} hotels saved.")
     return total_processed, total_success
+def crawl_province_with_workers(province_path, output_dir, max_workers=3, max_runtime_minutes=None):
+    province_name = os.path.basename(province_path)
+    logger = logging.getLogger(f"Province-{province_name}")
+    logger.info(f"Starting province: {province_name} with {max_workers} workers")
 
+    # === GOM TẤT CẢ URL ===
+    all_hotel_urls = []
+    txt_files = [f for f in os.listdir(province_path) if f.lower().endswith('.txt')]
+
+    for txt_file in txt_files:
+        file_path = os.path.join(province_path, txt_file)
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                urls = [line.strip() for line in f if line.strip().startswith('http')]
+                all_hotel_urls.extend(urls)
+        except Exception as e:
+            logger.error(f"Cannot read {file_path}: {e}")
+
+    if not all_hotel_urls:
+        logger.warning(f"No valid URLs in {province_name}")
+        return 0, 0
+
+    total_urls = len(all_hotel_urls)
+    logger.info(f"Found {total_urls} URLs → using dynamic task queue")
+
+    # === DYNAMIC: Tạo queue công việc nhỏ ===
+    manager = Manager()
+    url_queue = manager.Queue()
+    for url in all_hotel_urls:
+        url_queue.put(url)
+
+    stop_event = manager.Event()
+
+    # === Auto stop ===
+    if max_runtime_minutes:
+        def auto_stop():
+            time.sleep(max_runtime_minutes * 60)
+            stop_event.set()
+            logger.info(f"Auto-stop after {max_runtime_minutes} minutes.")
+        threading.Thread(target=auto_stop, daemon=True).start()
+
+    # === Press Enter to stop ===
+    def wait_for_enter():
+        print("\n" + "!"*60)
+        print(f"     ĐANG CRAWL TỈNH: {province_name}")
+        print("     NHẤN ENTER ĐỪNG VỘI – ĐANG DÙNG QUEUE ĐỘNG")
+        print("!"*60)
+        input()
+        stop_event.set()
+        logger.info("ENTER pressed. Stopping...")
+    threading.Thread(target=wait_for_enter, daemon=True).start()
+
+    # === Hàm worker lấy việc từ queue ===
+    def worker_task(worker_id):
+        logger = logging.getLogger(f"Worker-{worker_id}-{province_name}")
+        driver = None
+        success_count = 0
+
+        try:
+            options = Options()
+            options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            options.add_argument("--disable-gpu")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--disable-extensions")
+            options.add_argument("--log-level=3")
+            options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
+            options.add_experimental_option('useAutomationExtension', False)
+
+            driver = webdriver.Edge(options=options)
+            driver.implicitly_wait(5)
+            driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+
+            # Chia màn hình
+            screen_width = 1920
+            cols = 3
+            cell_w = screen_width // cols
+            x = (worker_id % cols) * cell_w
+            driver.set_window_rect(x=x, y=0, width=cell_w, height=1080)
+            logger.info(f"Window [{worker_id}] → ({x}, 0) | {cell_w}x1080")
+
+            driver.get("https://www.booking.com")
+            time.sleep(random.uniform(2, 4))
+
+            while not stop_event.is_set():
+                try:
+                    url = url_queue.get_nowait()
+                except:
+                    break  # Queue rỗng
+
+                # === Xử lý 1 URL ===
+                retry_count = 0
+                max_retries = 2
+                hotel_success = False
+
+                while retry_count <= max_retries and not stop_event.is_set() and not hotel_success:
+                    try:
+                        full_url = url + "?lang=vi"
+                        driver.get(full_url)
+                        time.sleep(random.uniform(0.5, 1.5))
+
+                        WebDriverWait(driver, 15).until(
+                            EC.presence_of_element_located((By.XPATH, '//*[@data-testid="review-score-component"]'))
+                        )
+                        time.sleep(random.uniform(0.8, 1.8))
+
+                        html = driver.page_source
+                        name, address, description, rating, number_rating = extract_hotel_data(html)
+                        evaluation_categories = extract_evaluation_categories(html)
+                        nameHotel, reviews = crawl_all_reviews(driver, full_url, province_name)
+
+                        if nameHotel:
+                            name = nameHotel
+
+                        hotel_data = {
+                            "name": name,
+                            "address": address,
+                            "description": description,
+                            "rating": rating,
+                            "total_rating": number_rating,
+                            "evaluation_categories": evaluation_categories,
+                            "reviews": reviews,
+                        }
+
+                        output_folder = os.path.join(output_dir, province_name)
+                        os.makedirs(output_folder, exist_ok=True)
+                        hotel_key = full_url.split('/')[-1].split('.')[0].replace('-', '_')
+                        filename = os.path.join(output_folder, f"{hotel_key}.json")
+
+                        with open(filename, "w", encoding="utf-8") as f:
+                            json.dump(hotel_data, f, ensure_ascii=False, indent=4)
+
+                        success_count += 1
+                        hotel_success = True
+                        logger.info(f"[{success_count}] Saved: {name}")
+
+                    except TimeoutException:
+                        retry_count += 1
+                        if retry_count <= max_retries:
+                            logger.warning(f"Timeout retry {retry_count}/{max_retries}: {url}")
+                            time.sleep(random.uniform(3, 6))
+                        else:
+                            logger.error(f"Timeout failed: {url}")
+                    except Exception as e:
+                        logger.error(f"Error on {url}: {e}")
+                        hotel_success = True  # Vẫn tính là xong, tránh lặp vô hạn
+
+                # Delay nhỏ giữa các URL
+                if not stop_event.is_set():
+                    time.sleep(random.uniform(1.5, 3.5))
+
+        except Exception as e:
+            logger.error(f"Worker-{worker_id} crashed: {e}")
+        finally:
+            if driver:
+                try:
+                    driver.quit()
+                except:
+                    pass
+            logger.info(f"Worker-{worker_id} done: {success_count} hotels")
+        return worker_id, success_count
+
+    # === Chạy max_workers song song ===
+    total_success = 0
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        futures = [
+            executor.submit(worker_task, i)
+            for i in range(max_workers)
+        ]
+
+        for future in as_completed(futures):
+            try:
+                wid, success = future.result()
+                total_success += success
+            except Exception as e:
+                logger.error(f"Future error: {e}")
+
+    logger.info(f"Province {province_name} DONE: {total_success}/{total_urls} hotels")
+    return total_urls, total_success
 
 # ================================
 # HÀM CHẠY TẤT CẢ CÁC TỈNH TUẦN TỰ
