@@ -17,7 +17,7 @@ ERROR_LINK_DIR = r"D:\private\crawler-booking-2025\src\crawler_hotel\crawler\out
 
 CRAWLER_AGAIN_ROOT_DIR = r"D:\private\crawler-booking-2025\src\crawler_hotel\crawler\province_crawler_again"
 TIMEOUT_ERROR_DIR_ROOT = r"D:\private\crawler-booking-2025\src\crawler_hotel\crawler\output_error_link"
-HOTEL_LINKS_DIR = r"D:\private\crawler-booking-2025\src\crawler_province\hotel_links_final"
+HOTEL_LINKS_DIR = r"D:\private\crawler-booking-2025\src\data_final"
 SUCCESS_JSON_DIR = ROOT_DIR  # data_final chính là nơi chứa success JSON theo tỉnh
 
 os.makedirs(ERROR_LINK_DIR, exist_ok=True)
