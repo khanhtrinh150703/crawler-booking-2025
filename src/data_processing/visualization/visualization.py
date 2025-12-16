@@ -42,48 +42,157 @@ def save_fig(fig: plt.Figure, filename: str, output_dir: str = DEFAULT_OUTPUT):
     print(f"   → Đã lưu: {filename}")
 
 # 01. Phân phối điểm – ĐẸP HOÀN HẢO, SỐ CHÍNH GIỮA CỘT, CHỈ HIỆN 1→10
-def plot_score_distribution(df: pd.DataFrame, output_dir: str):
-    fig, ax = plt.subplots(figsize=(12, 7.5))
-    scores = df["score"].dropna().astype(float)
-    bins = np.arange(0.5, 11.6, 1)
-    n, _, patches = ax.hist(scores, bins=bins, color="#e74c3c", alpha=0.85, 
-                            edgecolor='black', linewidth=1.3, rwidth=0.88)
+def plot_score_distribution(df: pd.DataFrame, output_dir: str) -> None:
+    """
+    Vẽ biểu đồ histogram phân phối điểm đánh giá từ 1 đến 10,
+    hiển thị số lượng chính xác trên đầu mỗi cột và lưu file ảnh.
 
-    ax.set_title("01. Phân phối điểm đánh giá", fontsize=20, fontweight='bold', pad=25)
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame chứa cột 'score' với điểm đánh giá.
+    output_dir : str
+        Thư mục đích để lưu file ảnh output.
+    """
+    # Tạo figure và axis với kích thước phù hợp
+    fig, ax = plt.subplots(figsize=(12, 7.5))
+
+    # Chuẩn bị dữ liệu: loại bỏ NaN và chuyển sang float
+    scores = df["score"].dropna().astype(float)
+
+    # Định nghĩa bins để các cột nằm chính giữa số nguyên từ 1 đến 10
+    bins = np.arange(0.5, 11.6, 1)
+
+    # Vẽ histogram
+    n, _, patches = ax.hist(
+        scores,
+        bins=bins,
+        color="#e74c3c",
+        alpha=0.85,
+        edgecolor="black",
+        linewidth=1.3,
+        rwidth=0.88,
+    )
+
+    # Thiết lập tiêu đề và nhãn trục
+    ax.set_title("01. Phân phối điểm đánh giá", fontsize=20, fontweight="bold", pad=25)
     ax.set_xlabel("Điểm số", fontsize=14)
     ax.set_ylabel("Số lượng đánh giá", fontsize=14)
+
+    # Chỉ hiển thị tick từ 1 đến 10, giới hạn trục x
     ax.set_xticks(range(1, 11))
     ax.set_xlim(0.5, 10.5)
-    ax.grid(axis='y', alpha=0.3)
 
+    # Thêm lưới ngang nhẹ để dễ đọc
+    ax.grid(axis="y", alpha=0.3)
+
+    # Thêm text hiển thị số lượng chính giữa trên đầu mỗi cột có dữ liệu
     max_n = max(n)
     for i, patch in enumerate(patches):
         count = n[i]
         if count > 0:
-            ax.text(patch.get_x() + patch.get_width()/2,
-                    patch.get_height() + max_n * 0.03,
-                    format_count(count),
-                    ha='center', va='bottom', fontweight='bold', fontsize=11, color='#2c3e50')
+            ax.text(
+                patch.get_x() + patch.get_width() / 2,
+                patch.get_height() + max_n * 0.03,
+                format_count(count),
+                ha="center",
+                va="bottom",
+                fontweight="bold",
+                fontsize=11,
+                color="#2c3e50",
+            )
 
+    # Lưu biểu đồ vào file
     save_fig(fig, "01_score_distribution.png", output_dir)
-
+    
 # 02. Missing values
-def plot_missing_values(df: pd.DataFrame, output_dir: str):
+def plot_missing_values(df: pd.DataFrame, output_dir: str) -> None:
+    """
+    Vẽ heatmap hiển thị ma trận dữ liệu thiếu (missing values) trong DataFrame,
+    giúp nhận diện nhanh các cột và hàng có giá trị bị thiếu.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame cần kiểm tra dữ liệu thiếu.
+    output_dir : str
+        Thư mục đích để lưu file ảnh output.
+    """
+    # Tạo figure với kích thước phù hợp để hiển thị toàn bộ các cột
     fig, ax = plt.subplots(figsize=(14, 10))
-    sns.heatmap(df.isnull(), cbar=True, yticklabels=False, cmap="viridis", ax=ax)
-    ax.set_title("02. Ma trận dữ liệu thiếu", fontsize=18, fontweight='bold')
+
+    # Vẽ heatmap: ô vàng (True) đại diện cho giá trị thiếu, ô tím (False) là giá trị tồn tại
+    sns.heatmap(
+        df.isnull(),          # Ma trận boolean: True nếu giá trị thiếu
+        cbar=True,            # Hiển thị thanh màu bên phải
+        yticklabels=False,    # Ẩn nhãn trục y để tránh rối (vì thường có quá nhiều hàng)
+        cmap="viridis",       # Bảng màu viridis giúp phân biệt rõ ràng
+        ax=ax,
+    )
+
+    # Đặt tiêu đề cho biểu đồ
+    ax.set_title("02. Ma trận dữ liệu thiếu", fontsize=18, fontweight="bold")
+
+    # Lưu biểu đồ vào file
     save_fig(fig, "02_missing_values.png", output_dir)
 
 # 03. Boxplot tỉnh
-def plot_boxplot_by_province(df: pd.DataFrame, output_dir: str):
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from your_module import save_fig  # Giả sử save_fig được định nghĩa ở nơi khác
+
+
+def plot_boxplot_by_province(df: pd.DataFrame, output_dir: str) -> None:
+    """
+    Vẽ boxplot phân phối điểm đánh giá theo từng tỉnh/thành phố,
+    sắp xếp theo median điểm giảm dần, loại bỏ tỉnh 'Khác'.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame chứa ít nhất các cột 'province' và 'score'.
+    output_dir : str
+        Thư mục đích để lưu file ảnh output.
+    """
+    # Lọc bỏ tỉnh "Khác" (thường là dữ liệu không xác định hoặc ngoài phạm vi)
     df_plot = df[df["province"] != "Khác"]
-    if df_plot.empty: return
-    order = df_plot.groupby("province")["score"].median().sort_values(ascending=False).index
+
+    # Nếu không còn dữ liệu sau khi lọc thì không vẽ biểu đồ
+    if df_plot.empty:
+        return
+
+    # Sắp xếp tỉnh/thành theo median điểm giảm dần để dễ so sánh
+    order = (
+        df_plot.groupby("province")["score"]
+        .median()
+        .sort_values(ascending=False)
+        .index
+    )
+
+    # Tạo figure với kích thước phù hợp
     fig, ax = plt.subplots(figsize=(12, 9))
-    sns.boxplot(data=df_plot, x="score", y="province", order=order,
-                hue="province", dodge=False, palette="coolwarm", legend=False, ax=ax)
-    ax.set_title("03. Boxplot điểm theo tỉnh/thành", fontsize=18, fontweight='bold')
+
+    # Vẽ boxplot ngang: trục y là tỉnh/thành, trục x là điểm số
+    sns.boxplot(
+        data=df_plot,
+        x="score",
+        y="province",
+        order=order,              # Thứ tự tỉnh đã sắp xếp
+        hue="province",           # Màu theo tỉnh (cần để palette hoạt động)
+        dodge=False,              # Không dịch chuyển các box (vì chỉ 1 box mỗi tỉnh)
+        palette="coolwarm",       # Bảng màu nóng-lạnh để phân biệt cao-thấp
+        legend=False,             # Ẩn legend vì đã có nhãn trục y
+        ax=ax,
+    )
+
+    # Thiết lập tiêu đề và nhãn trục
+    ax.set_title("03. Boxplot điểm theo tỉnh/thành", fontsize=18, fontweight="bold")
     ax.set_xlabel("Điểm số")
+    ax.set_ylabel("")  # Có thể để trống vì nhãn tỉnh đã hiển thị trên trục y
+
+    # Lưu biểu đồ vào file
     save_fig(fig, "03_boxplot_by_province.png", output_dir)
 
 # 04. Phổ điểm Top 15 – FIX 100%: LUÔN HIỆN ĐỦ 1 2 3 4 5 6 7 8 9 10 + SỐ CHÍNH GIỮA
@@ -980,6 +1089,7 @@ def plot_sentiment_ratio_by_group(df: pd.DataFrame, output_dir: str):
 #32
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.gridspec import GridSpec
 
 def plot_sentiment_count_from_text_columns(df: pd.DataFrame, output_dir: str):
     required_cols = ['positive_text', 'negative_text']
@@ -994,31 +1104,36 @@ def plot_sentiment_count_from_text_columns(df: pd.DataFrame, output_dir: str):
         return
     
     # Kiểm tra có nội dung
-    pos_mask = df_plot['positive_text'].notna() & (df_plot['positive_text'].astype(str).str.strip() != '')
-    neg_mask = df_plot['negative_text'].notna() & (df_plot['negative_text'].astype(str).str.strip() != '')
+    pos_has_content = df_plot['positive_text'].notna() & (df_plot['positive_text'].astype(str).str.strip() != '')
+    neg_has_content = df_plot['negative_text'].notna() & (df_plot['negative_text'].astype(str).str.strip() != '')
     
-    # Đếm
-    positive_count = pos_mask.sum()
-    negative_count = neg_mask.sum()
-    no_review_count = (~pos_mask & ~neg_mask).sum()
+    # Đếm riêng từng loại
+    has_positive_count = pos_has_content.sum()
+    has_negative_count = neg_has_content.sum()
+    no_positive_count = (~pos_has_content).sum()   # positive_text trống
+    no_negative_count = (~neg_has_content).sum()   # negative_text trống
     
     # Tính %
-    positive_pct = round(positive_count / total_rows * 100, 1)
-    negative_pct = round(negative_count / total_rows * 100, 1)
-    no_review_pct = round(no_review_count / total_rows * 100, 1)
+    has_positive_pct = round(has_positive_count / total_rows * 100, 1)
+    has_negative_pct = round(has_negative_count / total_rows * 100, 1)
+    no_positive_pct = round(no_positive_count / total_rows * 100, 1)
+    no_negative_pct = round(no_negative_count / total_rows * 100, 1)
     
     # Data cho pie
-    counts = [positive_count, negative_count, no_review_count]
-    labels = ['Có nội dung tích cực', 'Có nội dung tiêu cực', 'Không có review']
-    pcts = [positive_pct, negative_pct, no_review_pct]
+    counts = [has_positive_count, has_negative_count, no_positive_count, no_negative_count]
+    labels = [
+        'Có nội dung tích cực',
+        'Có nội dung tiêu cực',
+        'Không có review tích cực',
+        'Không có review tiêu cực'
+    ]
     
-    # MÀU SẮC NỔI BẬT, TRONG VÀ ĐẸP HƠN
-    colors = ['#2ecc71', '#e74c3c', '#bdc3c7']  # Emerald green, Alizarin red, Silver gray
+    # MÀU NHẸ NHÀNG, THANH LỊCH, ĐỦ NỔI BẬT
+    colors = ['#a8e6cf', '#ffcccb', '#d0e1f9', '#e6e6fa']  # Mint, Soft pink, Soft blue, Soft lavender
     
-    # Figure với GridSpec để pie bên trái, text bên phải
-    from matplotlib.gridspec import GridSpec
-    fig = plt.figure(figsize=(16, 10))
-    gs = GridSpec(1, 2, width_ratios=[1.5, 1], wspace=0.4)
+    # Figure layout
+    fig = plt.figure(figsize=(18, 11))
+    gs = GridSpec(1, 2, width_ratios=[1.6, 1], wspace=0.4)
     
     # Pie chart bên trái
     ax_pie = fig.add_subplot(gs[0, 0])
@@ -1028,38 +1143,39 @@ def plot_sentiment_count_from_text_columns(df: pd.DataFrame, output_dir: str):
         autopct='%1.1f%%',
         startangle=90,
         colors=colors,
-        textprops={'fontsize': 13, 'fontweight': 'bold'},
+        textprops={'fontsize': 12, 'fontweight': 'bold'},
         wedgeprops={'linewidth': 3, 'edgecolor': 'white'}
     )
     
-    # Làm đẹp phần trăm trên pie
+    # Phần trăm trên pie đẹp
     for autotext in autotexts:
-        autotext.set_color('white')
-        autotext.set_fontsize(18)
+        autotext.set_color('black' if autotext.get_text() == '' else 'white')
+        autotext.set_fontsize(16)
         autotext.set_fontweight('bold')
     
-    ax_pie.set_title("Tỷ lệ bình luận theo nội dung text", fontsize=18, fontweight='bold', pad=20)
+    ax_pie.set_title("Tỷ lệ có/không nội dung theo từng loại review", fontsize=18, fontweight='bold', pad=20)
     
-    # Text box chi tiết HOÀN TOÀN bên phải
+    # Ghi chú hoàn toàn bên phải
     ax_text = fig.add_subplot(gs[0, 1])
-    ax_text.axis('off')  # Ẩn trục
+    ax_text.axis('off')
     
     info_text = (
         f"Tổng số bình luận: {total_rows:,}\n\n"
-        f"• Có nội dung tích cực\n   (positive_text): {positive_count:,} ({positive_pct}%)\n\n"
-        f"• Có nội dung tiêu cực\n   (negative_text): {negative_count:,} ({negative_pct}%)\n\n"
-        f"• Không có review\n   (cả 2 cột trống): {no_review_count:,} ({no_review_pct}%)"
+        f"• Có nội dung tích cực\n   (positive_text): {has_positive_count:,} ({has_positive_pct}%)\n\n"
+        f"• Có nội dung tiêu cực\n   (negative_text): {has_negative_count:,} ({has_negative_pct}%)\n\n"
+        f"• Không có review tích cực\n   (positive_text trống): {no_positive_count:,} ({no_positive_pct}%)\n\n"
+        f"• Không có review tiêu cực\n   (negative_text trống): {no_negative_count:,} ({no_negative_pct}%)"
     )
     
-    ax_text.text(0.05, 0.5, info_text, fontsize=16, verticalalignment='center',
-                 bbox=dict(boxstyle="round,pad=1.5", facecolor="white", edgecolor="#34495e", linewidth=2, alpha=0.95))
+    ax_text.text(0.05, 0.5, info_text, fontsize=16, verticalalignment='center', linespacing=1.8,
+                 bbox=dict(boxstyle="round,pad=1.5", facecolor="white", edgecolor="#95a5a6", linewidth=2, alpha=0.95))
     
     # Tiêu đề tổng
-    fig.suptitle("32. Tổng hợp số lượng bình luận theo nội dung text\n(Dựa trên positive_text & negative_text)", 
+    fig.suptitle("32. Phân tích chi tiết nội dung positive_text & negative_text\n ", 
                  fontsize=24, fontweight='bold', y=0.98)
     
     plt.tight_layout()
-    save_fig(fig, "32_sentiment_count_text_columns_beautiful.png", output_dir)
+    save_fig(fig, "32_sentiment_count_split_pos_neg_missing.png", output_dir)
     
 def generate_all_advanced_charts(data: Dict, stats: Dict = None, output_dir: str = DEFAULT_OUTPUT):
     """
@@ -1077,100 +1193,100 @@ def generate_all_advanced_charts(data: Dict, stats: Dict = None, output_dir: str
     print("═" * 90)
 
     # 01. Phân phối điểm số
-    plot_score_distribution(df, output_dir)
+    # plot_score_distribution(df, output_dir)
 
-    # 02. Ma trận dữ liệu thiếu
-    plot_missing_values(df, output_dir)
+    # # 02. Ma trận dữ liệu thiếu
+    # plot_missing_values(df, output_dir)
 
-    # 03. Boxplot điểm theo tỉnh/thành
-    plot_boxplot_by_province(df, output_dir)
+    # # 03. Boxplot điểm theo tỉnh/thành
+    # plot_boxplot_by_province(df, output_dir)
 
-    # 04. Phổ điểm Top 15 tỉnh – ĐÃ FIX trục 0-10 dù tên dài cỡ nào
-    plot_score_facet_top15(df, top_provinces, output_dir)
+    # # 04. Phổ điểm Top 15 tỉnh – ĐÃ FIX trục 0-10 dù tên dài cỡ nào
+    # plot_score_facet_top15(df, top_provinces, output_dir)
 
-    # 05. Xu hướng review theo thời gian – Top 8 tỉnh
-    plot_time_series_top8(df, top_provinces, output_dir)
+    # # 05. Xu hướng review theo thời gian – Top 8 tỉnh
+    # plot_time_series_top8(df, top_provinces, output_dir)
 
-    # 06. Độ lệch điểm của reviewer so với trung bình khách sạn
-    plot_reviewer_deviation(df, output_dir)
+    # # 06. Độ lệch điểm của reviewer so với trung bình khách sạn
+    # plot_reviewer_deviation(df, output_dir)
 
-    # 07. Mối liên hệ độ dài bình luận vs điểm số
-    plot_text_length_vs_score(df, output_dir)
+    # # 07. Mối liên hệ độ dài bình luận vs điểm số
+    # plot_text_length_vs_score(df, output_dir)
 
-    # 08. Top loại phòng phổ biến
-    plot_top_room_types(df, output_dir, top_n=15)
+    # # 08. Top loại phòng phổ biến
+    # plot_top_room_types(df, output_dir, top_n=15)
 
-    # 09. Phân bố theo nhóm khách (cặp đôi, gia đình, một mình,...)
-    plot_group_type_distribution(df, output_dir)
+    # # 09. Phân bố theo nhóm khách (cặp đôi, gia đình, một mình,...)
+    # plot_group_type_distribution(df, output_dir)
 
-    # 10. Tỷ lệ lọc dữ liệu (Pie chart) – RẤT QUAN TRỌNG CHO LUẬN VĂN
-    if stats:
-        plot_processing_ratio_pie(stats, output_dir)
-    else:
-        print("   → Bỏ qua biểu đồ 10: Không có stats để vẽ pie chart lọc dữ liệu")
+    # # 10. Tỷ lệ lọc dữ liệu (Pie chart) – RẤT QUAN TRỌNG CHO LUẬN VĂN
+    # if stats:
+    #     plot_processing_ratio_pie(stats, output_dir)
+    # else:
+    #     print("   → Bỏ qua biểu đồ 10: Không có stats để vẽ pie chart lọc dữ liệu")
 
-    # 11. Top quốc gia có nhiều đánh giá nhất
-    plot_country_distribution(df, output_dir)
+    # # 11. Top quốc gia có nhiều đánh giá nhất
+    # plot_country_distribution(df, output_dir)
 
-    # 12. Wordcloud tiếng Việt (to đẹp, chuyên nghiệp)
-    plot_vietnamese_wordcloud(df, output_dir)
+    # # 12. Wordcloud tiếng Việt (to đẹp, chuyên nghiệp)
+    # plot_vietnamese_wordcloud(df, output_dir)
 
-    # 13. Ma trận tương quan các biến số
-    plot_correlation_heatmap(df, output_dir)
+    # # 13. Ma trận tương quan các biến số
+    # plot_correlation_heatmap(df, output_dir)
 
-    # 14. Xu hướng tổng số lượng đánh giá theo thời gian 
-    plot_review_trend_over_time(df, output_dir)
+    # # 14. Xu hướng tổng số lượng đánh giá theo thời gian 
+    # plot_review_trend_over_time(df, output_dir)
 
-    # 15. Điểm trung bình đánh giá theo thời gian 
-    plot_average_score_over_time(df, output_dir)
+    # # 15. Điểm trung bình đánh giá theo thời gian 
+    # plot_average_score_over_time(df, output_dir)
 
-    # 16. Điểm đánh giá theo loại nhóm khách
-    plot_score_by_group_type(df, output_dir)
+    # # 16. Điểm đánh giá theo loại nhóm khách
+    # plot_score_by_group_type(df, output_dir)
 
-    # 17. Phân phối điểm theo tỉnh/thành (Top 10) 
-    plot_violin_score_by_province(df, output_dir)
+    # # 17. Phân phối điểm theo tỉnh/thành (Top 10) 
+    # plot_violin_score_by_province(df, output_dir)
 
-    # 18. Wordcloud so sánh điểm cao (9-10) vs điểm thấp (≤7) –
-    plot_wordcloud_high_vs_low(df, output_dir)
+    # # 18. Wordcloud so sánh điểm cao (9-10) vs điểm thấp (≤7) –
+    # plot_wordcloud_high_vs_low(df, output_dir)
 
-    # 19. Tỷ lệ đánh giá tiếng Việt theo tỉnh/thành (Top 15)
-    plot_vietnamese_ratio_by_province(df, output_dir)
+    # # 19. Tỷ lệ đánh giá tiếng Việt theo tỉnh/thành (Top 15)
+    # plot_vietnamese_ratio_by_province(df, output_dir)
 
-    # 20. Điểm trung bình theo thời gian lưu trú – Ở lâu có hài lòng hơn?
-    plot_score_by_stay_duration(df, output_dir)
+    # # 20. Điểm trung bình theo thời gian lưu trú – Ở lâu có hài lòng hơn?
+    # plot_score_by_stay_duration(df, output_dir)
 
-    # 21. Heatmap số lượng review theo tháng & tỉnh – Mùa vụ từng nơi rõ rệt
-    plot_review_heatmap_by_province(df, top_provinces, output_dir)
+    # # 21. Heatmap số lượng review theo tháng & tỉnh – Mùa vụ từng nơi rõ rệt
+    # plot_review_heatmap_by_province(df, top_provinces, output_dir)
 
-    # 22. Scatter: Số review vs Điểm trung bình khách sạn – Nổi tiếng = chất lượng?
-    plot_hotel_popularity_vs_score(df, output_dir)
+    # # 22. Scatter: Số review vs Điểm trung bình khách sạn – Nổi tiếng = chất lượng?
+    # plot_hotel_popularity_vs_score(df, output_dir)
 
-    # 23. So sánh điểm số Khách Việt vs Quốc tế – Cultural bias thú vị
-    plot_score_vietnamese_vs_international(df, output_dir)
+    # # 23. So sánh điểm số Khách Việt vs Quốc tế – Cultural bias thú vị
+    # plot_score_vietnamese_vs_international(df, output_dir)
 
-    # 24. Top bigrams điểm cao vs thấp – Từ khóa thực tế khách dùng
-    plot_top_bigrams_high_low(df, output_dir)
+    # # 24. Top bigrams điểm cao vs thấp – Từ khóa thực tế khách dùng
+    # plot_top_bigrams_high_low(df, output_dir)
 
-    # 25. Điểm đánh giá theo loại phòng – Phòng cao cấp có thật sự tốt hơn?
-    plot_score_by_room_type(df, output_dir)
+    # # 25. Điểm đánh giá theo loại phòng – Phòng cao cấp có thật sự tốt hơn?
+    # plot_score_by_room_type(df, output_dir)
 
-    # 26. Độ lệch điểm theo nhóm khách – Phát hiện thiên vị theo loại khách
-    plot_deviation_by_group_type(df, output_dir)
+    # # 26. Độ lệch điểm theo nhóm khách – Phát hiện thiên vị theo loại khách
+    # plot_deviation_by_group_type(df, output_dir)
 
-    # 27. Phân phối điểm theo top 20 khách sạn – Chất lượng ổn định hay biến động?
-    plot_score_by_top_hotels(df, output_dir, top_n=20)
+    # # 27. Phân phối điểm theo top 20 khách sạn – Chất lượng ổn định hay biến động?
+    # plot_score_by_top_hotels(df, output_dir, top_n=20)
     
-    # 28. Pairplot các đặc trưng số – Correlation pairwise siêu rõ
-    plot_pairplot_numeric_features(df, output_dir)
+    # # 28. Pairplot các đặc trưng số – Correlation pairwise siêu rõ
+    # plot_pairplot_numeric_features(df, output_dir)
 
-    # 29. Score vs Text Length theo group_type – Tương tác 3 feature
-    plot_score_vs_text_length_faceted_vertical(df, output_dir)
+    # # 29. Score vs Text Length theo group_type – Tương tác 3 feature
+    # plot_score_vs_text_length_faceted_vertical(df, output_dir)
 
-    # 30. Jointplot Score vs Text Length với regression – Hay nhất để thấy mối quan hệ tuyến tính
-    plot_score_vs_text_length_stacked_bar(df, output_dir)
+    # # 30. Jointplot Score vs Text Length với regression – Hay nhất để thấy mối quan hệ tuyến tính
+    # plot_score_vs_text_length_stacked_bar(df, output_dir)
     
-    #31
-    plot_sentiment_ratio_by_group(df, output_dir)
+    # #31
+    # plot_sentiment_ratio_by_group(df, output_dir)
     
     #32
     plot_sentiment_count_from_text_columns(df, output_dir)
