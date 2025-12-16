@@ -2,7 +2,7 @@ import os
 import re
 
 # Đường dẫn (local, chỉnh sửa theo máy bạn)
-BASE_FOLDER = r"D:\private\data"
+BASE_FOLDER = r"D:\private\test"
 OUTPUT_CSV = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'outputs', 'analysis_results')
 CHARTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'outputs', 'charts')
 os.makedirs(CHARTS_DIR, exist_ok=True)

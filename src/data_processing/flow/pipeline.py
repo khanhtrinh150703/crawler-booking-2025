@@ -43,7 +43,7 @@ def run_pipeline():
     # Chuyển dự liệu từ các file json thành 1 data frame và lưu lại vào file.csv
     # load_stats["df"].to_csv('du_lieu.csv', index=False, encoding='utf-8')
     
-    load_stats = load_data_from_csv('du_lieu.csv')
+    load_stats = load_data_from_csv('du_lieu_full.csv')
     
     generate_all_advanced_charts(load_stats)
     

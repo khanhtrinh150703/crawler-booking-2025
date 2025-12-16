@@ -321,9 +321,6 @@ def plot_correlation_heatmap(df: pd.DataFrame, output_dir: str):
     ax.set_title("13. Ma trận tương quan các biến số", fontsize=18, fontweight='bold')
     save_fig(fig, "13_correlation_heatmap.png", output_dir)
 
-
-# ==================== 6 BIỂU ĐỒ MỚI SIÊU HAY - THÊM VÀO EDA ====================
-
 # 14. Xu hướng tổng số lượng review theo thời gian (toàn bộ dữ liệu)
 def plot_review_trend_over_time(df: pd.DataFrame, output_dir: str):
     if "month_year" not in df.columns:
@@ -829,6 +826,7 @@ def plot_score_vs_text_length_faceted_vertical(df: pd.DataFrame, output_dir: str
     save_fig(fig, "29_score_vs_text_length_vertical_hexbin.png", output_dir)
     
 # 30. 
+
 def plot_score_vs_text_length_stacked_bar(df: pd.DataFrame, output_dir: str, bins: int = 10):
     if "text_length" not in df.columns or "score" not in df.columns or "group_type" not in df.columns:
         return
@@ -840,47 +838,232 @@ def plot_score_vs_text_length_stacked_bar(df: pd.DataFrame, output_dir: str, bin
     if df_plot.empty:
         return
     
-    # Chia text_length thành bins (có thể điều chỉnh bins=8-12 tùy dữ liệu)
+    # Chia độ dài bình luận thành bins bằng quantile (đảm bảo mỗi bin có số lượng tương đối đều)
     df_plot['length_bin'] = pd.qcut(df_plot["text_length"], q=bins, duplicates='drop')
-    # Hoặc dùng cut nếu muốn bin đều: pd.cut(df_plot["text_length"], bins=bins)
     
-    # Crosstab: count theo bin và group
-    crosstab = pd.crosstab(df_plot['length_bin'], df_plot['group_type'])
+    # Tính count tuyệt đối
+    crosstab_count = pd.crosstab(df_plot['length_bin'], df_plot['group_type'])
     
-    # Sắp xếp bin từ thấp đến cao
-    crosstab = crosstab.sort_index(ascending=False)  # Cao nhất ở trên (giống ảnh)
+    # Sắp xếp bin từ dài nhất xuống ngắn nhất (giống biểu đồ mẫu)
+    crosstab_count = crosstab_count.sort_index(ascending=False)
     
-    # Palette màu giống ảnh: xanh lá, cam, xanh dương + thêm nếu nhiều nhóm
-    unique_groups = crosstab.columns
+    # Tính % để vẽ 100% stacked bar
+    crosstab_pct = crosstab_count.div(crosstab_count.sum(axis=1), axis=0) * 100
+    
+    # Palette màu đẹp, rõ ràng (xanh lá, cam, xanh dương... giống biểu đồ FB/Twitter/Instagram)
+    unique_groups = crosstab_count.columns
     custom_colors = ['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f', '#e5c494', '#b3b3b3']
     colors = custom_colors[:len(unique_groups)]
     if len(unique_groups) > len(custom_colors):
-        colors += sns.color_palette("husl", len(unique_groups) - len(custom_colors))
+        colors += sns.color_palette("husl", len(unique_groups) - len(custom_colors)).tolist()
     
-    fig, ax = plt.subplots(figsize=(16, max(8, len(crosstab) * 0.8)))
+    # Tăng kích thước figure để có chỗ cho label dài
+    fig, ax = plt.subplots(figsize=(18, max(9, len(crosstab_count) * 0.9)))
     
-    # Vẽ stacked bar horizontal
-    crosstab.plot(kind='barh', stacked=True, color=colors, ax=ax, width=0.8)
+    # Vẽ 100% stacked bar horizontal
+    crosstab_pct.plot(kind='barh', stacked=True, color=colors, ax=ax, width=0.8)
     
-    ax.set_title("30. Phân bố độ dài bình luận theo nhóm khách (Stacked Bar – Rõ chiếm tỷ lệ từng nhóm)",
-                 fontsize=22, fontweight='bold', pad=25)
-    ax.set_xlabel("Số lượng bình luận", fontsize=15)
+    ax.set_title("30. Tỷ lệ và số lượng nhóm khách theo độ dài bình luận",
+                 fontsize=22, fontweight='bold', pad=30)
+    ax.set_xlabel("Tỷ lệ phần trăm (%)", fontsize=15)
     ax.set_ylabel("Khoảng độ dài bình luận (số từ)", fontsize=15)
     ax.grid(axis='x', alpha=0.3)
     
-    # Thêm số lượng lên từng segment (giống ảnh)
-    for c in ax.containers:
-        ax.bar_label(c, label_type='center', fontsize=11, fontweight='bold')
+    # Dual label: XX.X% (YYYY) — chỉ hiện khi >= 5% để tránh chồng chéo
+    rects = ax.patches  # Các segment
+    count_flat = crosstab_count.to_numpy().flatten('F')  # Flatten theo thứ tự stacked
+    pct_flat = crosstab_pct.to_numpy().flatten('F')
     
-    # Legend đẹp + có thể thêm mô tả ngắn nếu muốn
-    ax.legend(title="Nhóm khách", bbox_to_anchor=(1.02, 1), loc='upper left', fontsize=12)
+    for rect, count, pct in zip(rects, count_flat, pct_flat):
+        if pct >= 5:  # Ngưỡng hiển thị — có thể giảm xuống 3 nếu muốn hiện nhiều hơn
+            label = f"{pct:.1f}% ({int(count)})"
+            ax.text(
+                rect.get_x() + rect.get_width() / 2,
+                rect.get_y() + rect.get_height() / 2,
+                label,
+                ha='center',
+                va='center',
+                fontsize=11,
+                fontweight='bold',
+                color='white' 
+            )
+    
+    # Legend bên phải
+    ax.legend(title="Nhóm khách", bbox_to_anchor=(1.02, 1), loc='upper left', fontsize=12, title_fontsize=13)
     
     plt.tight_layout()
-    save_fig(fig, "30_score_vs_text_length_stacked_bar.png", output_dir)
+    save_fig(fig, "30_score_vs_text_length_100percent_stacked_dual_label.png", output_dir)
 
+#31
+def plot_sentiment_ratio_by_group(df: pd.DataFrame, output_dir: str):
+    if "score" not in df.columns or "group_type" not in df.columns:
+        return
+    
+    df_plot = df.copy()
+    df_plot["score"] = pd.to_numeric(df_plot["score"], errors="coerce")
+    df_plot = df_plot.dropna(subset=["score", "group_type"])
+    
+    if df_plot.empty:
+        return
+    
+    # Định nghĩa sentiment (có thể chỉnh threshold)
+    def get_sentiment(s):
+        if s >= 8:
+            return "Positive"
+        elif s <= 4:
+            return "Negative"
+        else:
+            return None  # Neutral, bỏ qua để chỉ tính pos/neg
+    
+    df_plot['sentiment'] = df_plot["score"].apply(get_sentiment)
+    df_sent = df_plot.dropna(subset=['sentiment'])  # Chỉ giữ pos/neg
+    
+    if df_sent.empty:
+        return
+    
+    # Crosstab count pos/neg theo group
+    crosstab_count = pd.crosstab(df_sent['group_type'], df_sent['sentiment'])
+    
+    # Sắp xếp theo tổng count giảm dần để nhóm lớn ở trên
+    crosstab_count['total'] = crosstab_count.sum(axis=1)
+    crosstab_count = crosstab_count.sort_values('total', ascending=True)  # Nhỏ ở trên để đẹp
+    crosstab_count = crosstab_count.drop(columns='total')
+    
+    # Nếu nhóm nào thiếu Positive hoặc Negative, fill 0
+    for col in ['Positive', 'Negative']:
+        if col not in crosstab_count.columns:
+            crosstab_count[col] = 0
+    crosstab_count = crosstab_count[['Positive', 'Negative']]  # Thứ tự cố định
+    
+    # Tính % cho 100% stacked
+    crosstab_pct = crosstab_count.div(crosstab_count.sum(axis=1), axis=0) * 100
+    
+    # Màu: Xanh lá cho Positive, Đỏ cho Negative
+    colors = ['#66c2a5', '#fc8d62']  # Xanh lá positive, Cam/đỏ negative
+    
+    fig, ax = plt.subplots(figsize=(14, max(6, len(crosstab_count) * 0.7)))
+    
+    # Vẽ 100% stacked horizontal
+    crosstab_pct.plot(kind='barh', stacked=True, color=colors, ax=ax, width=0.8)
+    
+    ax.set_title("31. Tỷ lệ đánh giá Tích cực & Tiêu cực theo nhóm khách",
+                 fontsize=22, fontweight='bold', pad=30)
+    ax.set_xlabel("Tỷ lệ phần trăm (%)", fontsize=15)
+    ax.set_ylabel("Nhóm khách", fontsize=15)
+    ax.grid(axis='x', alpha=0.3)
+    
+    # Dual label XX.X% (YYYY)
+    rects = ax.patches
+    count_flat = crosstab_count.to_numpy().flatten('F')  # Theo thứ tự stacked
+    pct_flat = crosstab_pct.to_numpy().flatten('F')
+    
+    for rect, count, pct in zip(rects, count_flat, pct_flat):
+        if pct >= 5:  # Ngưỡng hiển thị
+            label = f"{pct:.1f}% ({int(count)})"
+            ax.text(
+                rect.get_x() + rect.get_width() / 2,
+                rect.get_y() + rect.get_height() / 2,
+                label,
+                ha='center',
+                va='center',
+                fontsize=11,
+                fontweight='bold',
+                color='white' if pct > 40 else 'black'
+            )
+    
+    # Legend
+    ax.legend(title="Sentiment", bbox_to_anchor=(1.02, 1), loc='upper left', fontsize=12)
+    
+    plt.tight_layout()
+    save_fig(fig, "31_sentiment_ratio_by_group.png", output_dir)
+
+#32
+import matplotlib.pyplot as plt
+import pandas as pd
+
+def plot_sentiment_count_from_text_columns(df: pd.DataFrame, output_dir: str):
+    required_cols = ['positive_text', 'negative_text']
+    if not all(col in df.columns for col in required_cols):
+        print("Thiếu cột positive_text hoặc negative_text – Skip biểu đồ này.")
+        return
+    
+    df_plot = df[required_cols].copy()
+    total_rows = len(df_plot)
+    
+    if total_rows == 0:
+        return
+    
+    # Kiểm tra có nội dung
+    pos_mask = df_plot['positive_text'].notna() & (df_plot['positive_text'].astype(str).str.strip() != '')
+    neg_mask = df_plot['negative_text'].notna() & (df_plot['negative_text'].astype(str).str.strip() != '')
+    
+    # Đếm
+    positive_count = pos_mask.sum()
+    negative_count = neg_mask.sum()
+    no_review_count = (~pos_mask & ~neg_mask).sum()
+    
+    # Tính %
+    positive_pct = round(positive_count / total_rows * 100, 1)
+    negative_pct = round(negative_count / total_rows * 100, 1)
+    no_review_pct = round(no_review_count / total_rows * 100, 1)
+    
+    # Data cho pie
+    counts = [positive_count, negative_count, no_review_count]
+    labels = ['Có nội dung tích cực', 'Có nội dung tiêu cực', 'Không có review']
+    pcts = [positive_pct, negative_pct, no_review_pct]
+    
+    # MÀU SẮC NỔI BẬT, TRONG VÀ ĐẸP HƠN
+    colors = ['#2ecc71', '#e74c3c', '#bdc3c7']  # Emerald green, Alizarin red, Silver gray
+    
+    # Figure với GridSpec để pie bên trái, text bên phải
+    from matplotlib.gridspec import GridSpec
+    fig = plt.figure(figsize=(16, 10))
+    gs = GridSpec(1, 2, width_ratios=[1.5, 1], wspace=0.4)
+    
+    # Pie chart bên trái
+    ax_pie = fig.add_subplot(gs[0, 0])
+    wedges, texts, autotexts = ax_pie.pie(
+        counts,
+        labels=labels,
+        autopct='%1.1f%%',
+        startangle=90,
+        colors=colors,
+        textprops={'fontsize': 13, 'fontweight': 'bold'},
+        wedgeprops={'linewidth': 3, 'edgecolor': 'white'}
+    )
+    
+    # Làm đẹp phần trăm trên pie
+    for autotext in autotexts:
+        autotext.set_color('white')
+        autotext.set_fontsize(18)
+        autotext.set_fontweight('bold')
+    
+    ax_pie.set_title("Tỷ lệ bình luận theo nội dung text", fontsize=18, fontweight='bold', pad=20)
+    
+    # Text box chi tiết HOÀN TOÀN bên phải
+    ax_text = fig.add_subplot(gs[0, 1])
+    ax_text.axis('off')  # Ẩn trục
+    
+    info_text = (
+        f"Tổng số bình luận: {total_rows:,}\n\n"
+        f"• Có nội dung tích cực\n   (positive_text): {positive_count:,} ({positive_pct}%)\n\n"
+        f"• Có nội dung tiêu cực\n   (negative_text): {negative_count:,} ({negative_pct}%)\n\n"
+        f"• Không có review\n   (cả 2 cột trống): {no_review_count:,} ({no_review_pct}%)"
+    )
+    
+    ax_text.text(0.05, 0.5, info_text, fontsize=16, verticalalignment='center',
+                 bbox=dict(boxstyle="round,pad=1.5", facecolor="white", edgecolor="#34495e", linewidth=2, alpha=0.95))
+    
+    # Tiêu đề tổng
+    fig.suptitle("32. Tổng hợp số lượng bình luận theo nội dung text\n(Dựa trên positive_text & negative_text)", 
+                 fontsize=24, fontweight='bold', y=0.98)
+    
+    plt.tight_layout()
+    save_fig(fig, "32_sentiment_count_text_columns_beautiful.png", output_dir)
+    
 def generate_all_advanced_charts(data: Dict, stats: Dict = None, output_dir: str = DEFAULT_OUTPUT):
     """
-    Hàm chính tạo ĐỦ 24 BIỂU ĐỒ phân tích nâng cao
+    Hàm chính tạo ĐỦ 32 BIỂU ĐỒ phân tích nâng cao
     Đã fix hết lỗi: trục 0-10, tên tỉnh dài, wordcloud, pie chart, deviation,...
     """
     df = data["df"]
@@ -890,7 +1073,7 @@ def generate_all_advanced_charts(data: Dict, stats: Dict = None, output_dir: str
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     print("\n" + "═" * 90)
-    print("        ĐANG TẠO ĐỦ 24 BIỂU ĐỒ ")
+    print("        ĐANG TẠO ĐỦ 32 BIỂU ĐỒ ")
     print("═" * 90)
 
     # 01. Phân phối điểm số
@@ -986,9 +1169,15 @@ def generate_all_advanced_charts(data: Dict, stats: Dict = None, output_dir: str
     # 30. Jointplot Score vs Text Length với regression – Hay nhất để thấy mối quan hệ tuyến tính
     plot_score_vs_text_length_stacked_bar(df, output_dir)
     
+    #31
+    plot_sentiment_ratio_by_group(df, output_dir)
+    
+    #32
+    plot_sentiment_count_from_text_columns(df, output_dir)
+    
     print("\n" + "═" * 90)
     print("        HOÀN TẤT THÀNH CÔNG!")
-    print(f"        Đã tạo ĐỦ 24 biểu đồ")
+    print(f"        Đã tạo ĐỦ 31 biểu đồ")
     print(f"        Thư mục lưu: {Path(output_dir).resolve()}")
     # print("\n        Giờ thì in ra, nộp sếp, bảo vệ xuất sắc, crush phải đổ!")
     # print("        Chúc bạn 10 ĐIỂM LUẬN VĂN & THĂNG CHỨC NHANH!")
