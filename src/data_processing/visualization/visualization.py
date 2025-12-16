@@ -137,13 +137,6 @@ def plot_missing_values(df: pd.DataFrame, output_dir: str) -> None:
     save_fig(fig, "02_missing_values.png", output_dir)
 
 # 03. Boxplot tỉnh
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-from your_module import save_fig  # Giả sử save_fig được định nghĩa ở nơi khác
-
-
 def plot_boxplot_by_province(df: pd.DataFrame, output_dir: str) -> None:
     """
     Vẽ boxplot phân phối điểm đánh giá theo từng tỉnh/thành phố,
@@ -1193,107 +1186,107 @@ def generate_all_advanced_charts(data: Dict, stats: Dict = None, output_dir: str
     print("═" * 90)
 
     # 01. Phân phối điểm số
-    # plot_score_distribution(df, output_dir)
+    plot_score_distribution(df, output_dir)
 
-    # # 02. Ma trận dữ liệu thiếu
-    # plot_missing_values(df, output_dir)
+    # 02. Ma trận dữ liệu thiếu
+    plot_missing_values(df, output_dir)
 
-    # # 03. Boxplot điểm theo tỉnh/thành
-    # plot_boxplot_by_province(df, output_dir)
+    # 03. Boxplot điểm theo tỉnh/thành
+    plot_boxplot_by_province(df, output_dir)
 
-    # # 04. Phổ điểm Top 15 tỉnh – ĐÃ FIX trục 0-10 dù tên dài cỡ nào
-    # plot_score_facet_top15(df, top_provinces, output_dir)
+    # 04. Phổ điểm Top 15 tỉnh – ĐÃ FIX trục 0-10 dù tên dài cỡ nào
+    plot_score_facet_top15(df, top_provinces, output_dir)
 
-    # # 05. Xu hướng review theo thời gian – Top 8 tỉnh
-    # plot_time_series_top8(df, top_provinces, output_dir)
+    # 05. Xu hướng review theo thời gian – Top 8 tỉnh
+    plot_time_series_top8(df, top_provinces, output_dir)
 
-    # # 06. Độ lệch điểm của reviewer so với trung bình khách sạn
-    # plot_reviewer_deviation(df, output_dir)
+    # 06. Độ lệch điểm của reviewer so với trung bình khách sạn
+    plot_reviewer_deviation(df, output_dir)
 
-    # # 07. Mối liên hệ độ dài bình luận vs điểm số
-    # plot_text_length_vs_score(df, output_dir)
+    # 07. Mối liên hệ độ dài bình luận vs điểm số
+    plot_text_length_vs_score(df, output_dir)
 
-    # # 08. Top loại phòng phổ biến
-    # plot_top_room_types(df, output_dir, top_n=15)
+    # 08. Top loại phòng phổ biến
+    plot_top_room_types(df, output_dir, top_n=15)
 
-    # # 09. Phân bố theo nhóm khách (cặp đôi, gia đình, một mình,...)
-    # plot_group_type_distribution(df, output_dir)
+    # 09. Phân bố theo nhóm khách (cặp đôi, gia đình, một mình,...)
+    plot_group_type_distribution(df, output_dir)
 
-    # # 10. Tỷ lệ lọc dữ liệu (Pie chart) – RẤT QUAN TRỌNG CHO LUẬN VĂN
-    # if stats:
-    #     plot_processing_ratio_pie(stats, output_dir)
-    # else:
-    #     print("   → Bỏ qua biểu đồ 10: Không có stats để vẽ pie chart lọc dữ liệu")
+    # 10. Tỷ lệ lọc dữ liệu (Pie chart) – RẤT QUAN TRỌNG CHO LUẬN VĂN
+    if stats:
+        plot_processing_ratio_pie(stats, output_dir)
+    else:
+        print("   → Bỏ qua biểu đồ 10: Không có stats để vẽ pie chart lọc dữ liệu")
 
-    # # 11. Top quốc gia có nhiều đánh giá nhất
-    # plot_country_distribution(df, output_dir)
+    # 11. Top quốc gia có nhiều đánh giá nhất
+    plot_country_distribution(df, output_dir)
 
-    # # 12. Wordcloud tiếng Việt (to đẹp, chuyên nghiệp)
-    # plot_vietnamese_wordcloud(df, output_dir)
+    # 12. Wordcloud tiếng Việt (to đẹp, chuyên nghiệp)
+    plot_vietnamese_wordcloud(df, output_dir)
 
-    # # 13. Ma trận tương quan các biến số
-    # plot_correlation_heatmap(df, output_dir)
+    # 13. Ma trận tương quan các biến số
+    plot_correlation_heatmap(df, output_dir)
 
-    # # 14. Xu hướng tổng số lượng đánh giá theo thời gian 
-    # plot_review_trend_over_time(df, output_dir)
+    # 14. Xu hướng tổng số lượng đánh giá theo thời gian 
+    plot_review_trend_over_time(df, output_dir)
 
-    # # 15. Điểm trung bình đánh giá theo thời gian 
-    # plot_average_score_over_time(df, output_dir)
+    # 15. Điểm trung bình đánh giá theo thời gian 
+    plot_average_score_over_time(df, output_dir)
 
-    # # 16. Điểm đánh giá theo loại nhóm khách
-    # plot_score_by_group_type(df, output_dir)
+    # 16. Điểm đánh giá theo loại nhóm khách
+    plot_score_by_group_type(df, output_dir)
 
-    # # 17. Phân phối điểm theo tỉnh/thành (Top 10) 
-    # plot_violin_score_by_province(df, output_dir)
+    # 17. Phân phối điểm theo tỉnh/thành (Top 10) 
+    plot_violin_score_by_province(df, output_dir)
 
-    # # 18. Wordcloud so sánh điểm cao (9-10) vs điểm thấp (≤7) –
-    # plot_wordcloud_high_vs_low(df, output_dir)
+    # 18. Wordcloud so sánh điểm cao (9-10) vs điểm thấp (≤7) –
+    plot_wordcloud_high_vs_low(df, output_dir)
 
-    # # 19. Tỷ lệ đánh giá tiếng Việt theo tỉnh/thành (Top 15)
-    # plot_vietnamese_ratio_by_province(df, output_dir)
+    # 19. Tỷ lệ đánh giá tiếng Việt theo tỉnh/thành (Top 15)
+    plot_vietnamese_ratio_by_province(df, output_dir)
 
-    # # 20. Điểm trung bình theo thời gian lưu trú – Ở lâu có hài lòng hơn?
-    # plot_score_by_stay_duration(df, output_dir)
+    # 20. Điểm trung bình theo thời gian lưu trú – Ở lâu có hài lòng hơn?
+    plot_score_by_stay_duration(df, output_dir)
 
-    # # 21. Heatmap số lượng review theo tháng & tỉnh – Mùa vụ từng nơi rõ rệt
-    # plot_review_heatmap_by_province(df, top_provinces, output_dir)
+    # 21. Heatmap số lượng review theo tháng & tỉnh – Mùa vụ từng nơi rõ rệt
+    plot_review_heatmap_by_province(df, top_provinces, output_dir)
 
-    # # 22. Scatter: Số review vs Điểm trung bình khách sạn – Nổi tiếng = chất lượng?
-    # plot_hotel_popularity_vs_score(df, output_dir)
+    # 22. Scatter: Số review vs Điểm trung bình khách sạn – Nổi tiếng = chất lượng?
+    plot_hotel_popularity_vs_score(df, output_dir)
 
-    # # 23. So sánh điểm số Khách Việt vs Quốc tế – Cultural bias thú vị
-    # plot_score_vietnamese_vs_international(df, output_dir)
+    # 23. So sánh điểm số Khách Việt vs Quốc tế – Cultural bias thú vị
+    plot_score_vietnamese_vs_international(df, output_dir)
 
-    # # 24. Top bigrams điểm cao vs thấp – Từ khóa thực tế khách dùng
-    # plot_top_bigrams_high_low(df, output_dir)
+    # 24. Top bigrams điểm cao vs thấp – Từ khóa thực tế khách dùng
+    plot_top_bigrams_high_low(df, output_dir)
 
-    # # 25. Điểm đánh giá theo loại phòng – Phòng cao cấp có thật sự tốt hơn?
-    # plot_score_by_room_type(df, output_dir)
+    # 25. Điểm đánh giá theo loại phòng – Phòng cao cấp có thật sự tốt hơn?
+    plot_score_by_room_type(df, output_dir)
 
-    # # 26. Độ lệch điểm theo nhóm khách – Phát hiện thiên vị theo loại khách
-    # plot_deviation_by_group_type(df, output_dir)
+    # 26. Độ lệch điểm theo nhóm khách – Phát hiện thiên vị theo loại khách
+    plot_deviation_by_group_type(df, output_dir)
 
-    # # 27. Phân phối điểm theo top 20 khách sạn – Chất lượng ổn định hay biến động?
-    # plot_score_by_top_hotels(df, output_dir, top_n=20)
+    # 27. Phân phối điểm theo top 20 khách sạn – Chất lượng ổn định hay biến động?
+    plot_score_by_top_hotels(df, output_dir, top_n=20)
     
-    # # 28. Pairplot các đặc trưng số – Correlation pairwise siêu rõ
-    # plot_pairplot_numeric_features(df, output_dir)
+    # 28. Pairplot các đặc trưng số – Correlation pairwise siêu rõ
+    plot_pairplot_numeric_features(df, output_dir)
 
-    # # 29. Score vs Text Length theo group_type – Tương tác 3 feature
-    # plot_score_vs_text_length_faceted_vertical(df, output_dir)
+    # 29. Score vs Text Length theo group_type – Tương tác 3 feature
+    plot_score_vs_text_length_faceted_vertical(df, output_dir)
 
-    # # 30. Jointplot Score vs Text Length với regression – Hay nhất để thấy mối quan hệ tuyến tính
-    # plot_score_vs_text_length_stacked_bar(df, output_dir)
+    # 30. Jointplot Score vs Text Length với regression – Hay nhất để thấy mối quan hệ tuyến tính
+    plot_score_vs_text_length_stacked_bar(df, output_dir)
     
-    # #31
-    # plot_sentiment_ratio_by_group(df, output_dir)
+    #31
+    plot_sentiment_ratio_by_group(df, output_dir)
     
     #32
     plot_sentiment_count_from_text_columns(df, output_dir)
     
     print("\n" + "═" * 90)
     print("        HOÀN TẤT THÀNH CÔNG!")
-    print(f"        Đã tạo ĐỦ 31 biểu đồ")
+    print(f"        Đã tạo ĐỦ 32 biểu đồ")
     print(f"        Thư mục lưu: {Path(output_dir).resolve()}")
     # print("\n        Giờ thì in ra, nộp sếp, bảo vệ xuất sắc, crush phải đổ!")
     # print("        Chúc bạn 10 ĐIỂM LUẬN VĂN & THĂNG CHỨC NHANH!")
