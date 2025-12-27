@@ -100,6 +100,9 @@ CZECH_SLAVIC_DANGER = "čďěňřšťžůýáéíóúôľĺŕąęćłńóśźż�
 # Ký tự tiếng Đức "nguy hiểm" (diacritics + ß) - dùng để test Unicode/encoding bugs với text Đức
 GERMAN_DANGER_CHARS = "äöüßÄÖÜẞ"
 
+# Ký tự tiếng Romania "nguy hiểm"
+ROMANIA_SPECIAL_CHARS = "ăâîșțĂÂÎȘȚ"
+
 # Các từ phổ biến trong review tiếng Pháp (thường gặp ở booking/hotel review từ khách Pháp)
 FRENCH_COMMON_WORDS = [
     "très", "bien", "chambre", "propre", "accueil", "personnel", "bon", "excellent",
@@ -118,6 +121,57 @@ ITALIAN_COMMON_WORDS = [
     "buona", "bella", "posizione", "camera", "colazione", "gentile", "accogliente"
 ]
 
+# Các từ phổ biến trong review tiếng Brazil
+BRAZIL_COMMON_WORDS = [
+    "ótima", "limpeza", "quarto", "cama", "confortável", "pessoal", "atencioso", "localização", "excelente", "café da manhã",
+    "delicioso", "recomendo", "hotel", "boa", "impressão", "chegada", "tarde", "noite", "partida", "dia seguinte",
+    "apenas", "dormi", "opinião", "formada", "mas", "deixou", "muito", "bom", "staff", "gentil",
+    "ajudou", "transporte", "táxi", "grab", "vista", "cidade", "perto", "centro", "restaurantes", "limpo",
+    "organizado", "moderno", "banheiro", "chuveiro", "quente", "wifi", "rápido", "silencioso", "tranquilo", "valor",
+    "preço", "justo", "recepção", "24 horas"
+]
+
+# Các từ phổ biến trong review ARABIC
+ARABIC_COMMON_WORDS = {
+    "ال", "في", "إلى", "على", "من", "هذا", "كان", "فندق", "الفندق", "جميل", "رائع",
+    "نظيف", "غرفة", "إقامة", "مدينة", "استقبال", "طاقم", "العمل", "مطعم", "مكان",
+    "شكرا", "جيد", "مريح", "إطلالة", "خدمة", "بالتأكيد", "سأعود", "زيارة", "أخرى"
+}
+
+# Các từ phổ biến trong review tiếng Trung
+CHINESE_COMMON_WORDS = {
+    "酒店", "很好", "房间", "干净", "服务", "位置", "早餐", "工作人员", "推荐",
+    "漂亮", "舒服", "风景", "大理", "河内", "胡志明市", "会安", "岘港", "下龙湾",
+    "性价比", "安静", "交通", "方便", "下次", "还会", "入住", "体验", "不错"
+}
+
+# Các từ phổ biến trong review tiếng Hàn
+KOREAN_COMMON_WORDS = {
+    "호텔", "좋아요", "방", "청결", "직원", "위치", "조식", "친절", "추천",
+    "뷰", "깨끗해요", "편안", "다낭", "호이안", "하노이", "호치민", "다시", "올게요",
+    "가성비", "조용", "편리", "최고", "멋져요", "아주", "좋았어요"
+}
+
+# Các từ phổ biến trong review tiếng Nhật
+JAPANESE_COMMON_WORDS = {
+    "ホテル", "良い", "部屋", "清潔", "スタッフ", "場所", "朝食", "親切", "おすすめ",
+    "景色", "快適", "ダナン", "ホイアン", "ハノイ", "ホーチミン", "また", "来たい",
+    "コスパ", "静か", "便利", "最高", "素敵", "とても", "良かった"
+}
+
+# Các từ phổ biến trong review tiếng Thái
+THAI_COMMON_WORDS = {
+    "โรงแรม", "ดี", "ห้อง", "สะอาด", "พนักงาน", "ทำเล", "อาหารเช้า", "เป็นมิตร",
+    "แนะนำ", "วิว", "สบาย", "ดานัง", "ฮอยอัน", "ฮานอย", "โฮจิมินห์", "ครั้งหน้า",
+    "คุ้มค่า", "เงียบ", "สะดวก", "ยอดเยี่ยม", "สวย"
+}
+
+# Các từ phổ biến trong review tiếng Indonesian
+INDONESIAN_COMMON_WORDS = {
+    "hotel", "bagus", "kamar", "bersih", "staf", "lokasi", "sarapan", "ramah", "rekomendasi",
+    "pemandangan", "nyaman", "da nang", "hội an", "hanoi", "ho chi minh", "lain kali",
+    "harga", "tenang", "mudah", "terbaik", "indah"
+}
 
 # Các từ phổ biến trong review tiếng Anh
 ENGLISH_COMMON_WORDS = [
@@ -194,6 +248,8 @@ NON_VIETNAMESE_LANGS = [
     'ms',    # Malay
     'th',    # Thai
     'tr',    # Turkish
+    'ro',    # Romanian
+    'pt-br', # Brazilian Portuguese
 ]
 
 # Tập hợp các từ cực kỳ phổ biến (stopwords cơ bản) của một số ngôn ngữ châu Âu chính
@@ -279,6 +335,8 @@ DEFAULT_VIETNAMESE_ABBREVIATION_MAPPING: Dict[str, str] = {
     "đg" : "đang",
     "dg" : "đang",
     "đ" : "đáng", 
+    "đl" : "đà lạt",
+    "fb" : "facebook",
     
     "complai" : "khiếu nại",
     "complain" : "khiếu nại",
@@ -434,6 +492,7 @@ DEFAULT_VIETNAMESE_ABBREVIATION_MAPPING: Dict[str, str] = {
     "recomend": "khuyên",
     "recoment": "khuyên",
     "recommended": "khuyên",
+    "highly" : "rất",
     "highly recommend": "rất khuyên",
     "will come back": "sẽ quay lại",
     "excellent": "xuất sắc",
@@ -536,4 +595,9 @@ DEFAULT_VIETNAMESE_ABBREVIATION_MAPPING: Dict[str, str] = {
     "an uong" : "ăn uống",
     "plaza" : "quảng trường",
     "double" : "đôi",
+    "hehe" : "cười",
+    "haha" : "cười",
+    "hihi" : "cười",
+    "review" : "đánh giá",
+    "voucher" : "phiếu giảm giá",
 }

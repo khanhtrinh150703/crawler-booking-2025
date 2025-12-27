@@ -148,3 +148,12 @@ def count_replacements(row: pd.Series, mapping: Dict[str, str] | None = None) ->
         text_lower = re.sub(pattern, '', text_lower)
     
     return count
+
+if __name__ == "__main__":
+    # Định nghĩa mapping tùy chỉnh
+    custom_mapping = {"khach san": "khách sạn"}
+
+    # Test hàm
+    text = "Tôi ở khach san tốt và KHACH SAN sang."
+    result = apply_text_mapping(text, custom_mapping)
+    print(result)  # Output: Tôi ở khách sạn tốt và KHÁCH SẠN sang.

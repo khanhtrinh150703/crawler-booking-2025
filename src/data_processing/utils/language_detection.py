@@ -89,7 +89,7 @@ def is_vietnamese(text: Any, country: str | None = None) -> bool:
         if lang == "vi" and vn_char_count == 0:
             return False
         # Nếu langdetect trả ngôn ngữ khác và ít ký tự tiếng Việt → tin tưởng → False
-        if lang in NON_VIETNAMESE_LANGS and vn_char_count <= 5:
+        if lang in NON_VIETNAMESE_LANGS and vn_char_count <= 2:
             return False
         # Các trường hợp còn lại: tin langdetect
         return lang == "vi"

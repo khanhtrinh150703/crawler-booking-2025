@@ -2,7 +2,26 @@ import re
 from typing import Optional
 import pandas as pd
 
-from config.config import VIETNAMESE_CHARS, EMOJI_PATTERN, VIETNAMESE_WORDS, NON_VIETNAMESE_LANGS, FOREIGN_INDICATORS, FRENCH_COMMON_WORDS,CZECH_SLAVIC_DANGER, GERMAN_DANGER_CHARS, ITALIAN_COMMON_WORDS, ENGLISH_COMMON_WORDS
+from config.config import (
+    VIETNAMESE_CHARS, 
+    EMOJI_PATTERN, 
+    VIETNAMESE_WORDS, 
+    NON_VIETNAMESE_LANGS, 
+    FOREIGN_INDICATORS, 
+    FRENCH_COMMON_WORDS,
+    CZECH_SLAVIC_DANGER, 
+    GERMAN_DANGER_CHARS, 
+    ROMANIA_SPECIAL_CHARS,
+    ITALIAN_COMMON_WORDS, 
+    ENGLISH_COMMON_WORDS, 
+    BRAZIL_COMMON_WORDS,
+    ARABIC_COMMON_WORDS,
+    CHINESE_COMMON_WORDS,
+    KOREAN_COMMON_WORDS,
+    JAPANESE_COMMON_WORDS,
+    THAI_COMMON_WORDS,
+    INDONESIAN_COMMON_WORDS
+)
 try:
     from langdetect import detect, LangDetectException
 except ImportError:
@@ -74,12 +93,21 @@ def is_vietnamese_improved(text: Optional[str], country: Optional[str] = None) -
     # Danger chars châu Âu
     german_danger_count = sum(c in GERMAN_DANGER_CHARS.lower() for c in text_lower)
     slavic_danger_count = sum(c in CZECH_SLAVIC_DANGER.lower() for c in text_lower)
+    romania_danger_count = sum(c in ROMANIA_SPECIAL_CHARS.lower() for c in text_lower)
+
 
     # Từ phổ biến các ngôn ngữ
     french_hits = sum(word in text_lower for word in FRENCH_COMMON_WORDS)
     italian_hits = sum(word in text_lower for word in ITALIAN_COMMON_WORDS)
     english_hits = sum(word in text_lower for word in ENGLISH_COMMON_WORDS)
+    brazil_hits = sum(word in text_lower for word in BRAZIL_COMMON_WORDS )
     vn_hits = sum(word in text_lower for word in VIETNAMESE_WORDS)
+    arabic_hits = sum(word in text_lower for word in ARABIC_COMMON_WORDS)
+    chinese_hits = sum(word in text_lower for word in CHINESE_COMMON_WORDS)
+    korean_hits = sum(word in text_lower for word in KOREAN_COMMON_WORDS)
+    japanese_hits = sum(word in text_lower for word in JAPANESE_COMMON_WORDS)
+    thai_hits = sum(word in text_lower for word in THAI_COMMON_WORDS)
+    indonesian_hits = sum(word in text_lower for word in INDONESIAN_COMMON_WORDS)
 
     has_foreign_indicators = contains_foreign_words(text_str)
 
@@ -91,14 +119,45 @@ def is_vietnamese_improved(text: Optional[str], country: Optional[str] = None) -
     if slavic_danger_count >= 3 and vn_hits < 4 and exclusive_count <= 2:
         return False
 
+    if romania_danger_count >= 2 and vn_hits < 4 and exclusive_count <= 2:
+        return False
+    
     # Pháp: ≥5 từ phổ biến + ít TV/exclusive thấp
     if french_hits >= 5 and vn_hits < 4 and exclusive_count <= 2:
         return False
 
     # Ý: ≥4 từ phổ biến
-    if italian_hits >= 4  :
+    if italian_hits >= 4:
         return False
 
+    # Brzil: ≥4 từ phổ biến
+    if brazil_hits >=4:
+        return False
+    
+    # Arabic: ≥4 từ phổ biến
+    if arabic_hits >= 4:
+        return False
+    
+    # Chinese: ≥3 từ phổ biến
+    if chinese_hits >= 3:
+        return False
+    
+    # Korean: ≥4 từ phổ biến
+    if korean_hits >= 4:
+        return False
+    
+    # NhatBan: ≥3 từ phổ biến
+    if japanese_hits >= 3:
+        return False
+    
+    # Thai: ≥4 từ phổ biến
+    if thai_hits >= 4:
+        return False
+    
+    # Indo: ≥5 từ phổ biến
+    if indonesian_hits >= 5:
+        return False
+    
     # Anh: ngưỡng hiện tại quá chặt → nới lỏng để tránh false negative với review tiếng Anh về VN
     # Trước: >=3 + vn_hits <10 + exclusive <=1 → quá dễ loại tiếng Anh
     # Sau: cần nhiều từ Anh hơn + ít dấu Việt hơn

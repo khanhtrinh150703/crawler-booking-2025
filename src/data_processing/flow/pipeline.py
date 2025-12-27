@@ -37,17 +37,17 @@ def run_pipeline():
     # 1. Tải dữ liệu thô từ file CSV (dùng cho biểu đồ, phân tích nhanh, dashboard...)
     # ------------------------------------------------------------------
     
-    # logging.info("Đang tải dữ liệu từ các file JSON...")
-    # load_stats = collect_master_stats()
+    logging.info("Đang tải dữ liệu từ các file JSON...")
+    load_stats = collect_master_stats()
 
-    # df = load_stats["df"]
+    df = load_stats["df"]
 
-    # # # Xuất TOÀN BỘ df 
-    # test_csv_file = os.path.join(DATA_DIR, "du_lieu_test_full.csv")
-    # df.to_csv(test_csv_file, index=False, encoding='utf-8-sig')
-    # logging.info(f"Đã xuất file kiểm tra đầy đủ: {test_csv_file}")
+    # # Xuất TOÀN BỘ df 
+    test_csv_file = os.path.join(DATA_DIR, "du_lieu_lam_dong.csv")
+    df.to_csv(test_csv_file, index=False, encoding='utf-8-sig')
+    logging.info(f"Đã xuất file kiểm tra đầy đủ: {test_csv_file}")
 
-    clean_csv_file = os.path.join(DATA_DIR, "du_lieu_test_full.csv")
+    clean_csv_file = os.path.join(DATA_DIR, "du_lieu_lam_dong.csv")
     
     # Dùng file sạch này để vẽ biểu đồ
     load_stats_final = load_data_from_csv(clean_csv_file)
@@ -66,7 +66,7 @@ def run_pipeline():
 
     logging.info("Đang chạy pipeline lọc dữ liệu sạch từ dữ liệu đã tải...")
     df_clean, filter_stats = process_csv_pipeline(load_stats_final)
-    process_csv_file = os.path.join(DATA_DIR, 'du_lieu_processing.csv')
+    process_csv_file = os.path.join(DATA_DIR, 'du_lieu_lam_dong_processing.csv')
     df_clean.to_csv(process_csv_file, index=False, encoding='utf-8-sig')
     # df_clean: DataFrame đã được lọc chất lượng cao, có thêm cột stt, positive_comment, v.v.
     # filter_stats: dict thống kê chi tiết quá trình lọc
