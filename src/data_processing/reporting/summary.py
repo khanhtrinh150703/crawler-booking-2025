@@ -18,7 +18,7 @@ def save_summary_report(
     filename: str = "summary_stats.json"
 ) -> str:
     """
-    Lưu báo cáo tổng quan (summary) dưới dạng JSON + in log đẹp.
+    Lưu báo cáo tổng quan (summary) dưới dạng JSON 
     
     Returns:
         Đường dẫn file đã lưu

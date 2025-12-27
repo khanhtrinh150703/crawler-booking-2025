@@ -26,22 +26,70 @@ plt.rcParams["axes.formatter.useoffset"] = False
 DEFAULT_OUTPUT = "outputs/advanced_analysis"
 Path(DEFAULT_OUTPUT).mkdir(parents=True, exist_ok=True)
 
-# HÀM ĐỊNH DẠNG SỐ – CHUẨN HÓA 4500 → 4.5K, 1234567 → 1.23M
-def format_count(x):
-    """Chuyển 4500 → 4.5K, 1234567 → 1.23M – siêu đẹp cho luận văn"""
-    if x >= 1_000_000:
-        return f'{x/1_000_000:.1f}M'.replace('.0M', 'M')
-    elif x >= 1_000:
-        return f'{x/1_000:.1f}K'.replace('.0K', 'K')
-    else:
-        return f'{int(x):,}'
+def format_count(x: int | float) -> str:
+    """
+    Định dạng số lượng lớn thành dạng ngắn gọn, đẹp mắt (dùng cho biểu đồ, bảng, luận văn).
 
-def save_fig(fig: plt.Figure, filename: str, output_dir: str = DEFAULT_OUTPUT):
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
-    path = Path(output_dir) / filename
-    fig.savefig(path, dpi=300, bbox_inches='tight', facecolor='white')
-    plt.close(fig)
-    print(f"   → Đã lưu: {filename}")
+    Ví dụ:
+        4500    → 4.5K
+        4000    → 4K
+        1234567 → 1.23M
+        1000000 → 1M
+        999     → 999
+
+    Args:
+        x: Số lượng cần định dạng (int hoặc float).
+
+    Returns:
+        Chuỗi đã được định dạng với đơn vị K/M hoặc dấu phẩy ngăn cách hàng nghìn.
+    """
+    if not isinstance(x, (int, float)) or x < 0:
+        return str(x)
+
+    if x >= 1_000_000:
+        formatted = f"{x / 1_000_000:.2f}M".rstrip("0").rstrip(".") + "M"
+        return formatted.replace(".M", "M")
+    elif x >= 1_000:
+        formatted = f"{x / 1_000:.2f}K".rstrip("0").rstrip(".") + "K"
+        return formatted.replace(".K", "K")
+    else:
+        return f"{int(x):,}"
+
+
+def save_fig(
+    fig: plt.Figure,
+    filename: str,
+    output_dir: str = "outputs/charts",  # bạn có thể thay DEFAULT_OUTPUT bằng giá trị cụ thể hoặc config
+    dpi: int = 300,
+) -> None:
+    """
+    Lưu matplotlib figure ra file với chất lượng cao, tự động tạo thư mục nếu cần.
+
+    Args:
+        fig: Figure object từ matplotlib.
+        filename: Tên file đầu ra (nên có đuôi .png hoặc .jpg).
+        output_dir: Thư mục lưu file (mặc định "outputs/charts").
+        dpi: Độ phân giải (mặc định 300 ).
+
+    Returns:
+        None (chỉ lưu file và in thông báo).
+    """
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    file_path = output_path / filename
+
+    fig.savefig(
+        file_path,
+        dpi=dpi,
+        bbox_inches="tight",
+        facecolor="white",
+        edgecolor="none",
+    )
+    plt.close(fig)  # Giải phóng bộ nhớ
+
+    print(f"   → Đã lưu biểu đồ: {file_path}")
+    
 
 # 01. Phân phối điểm đánh giá 
 def plot_score_distribution(df: pd.DataFrame, output_dir: str) -> None:
@@ -2306,7 +2354,7 @@ def plot_score_vs_detailed_review_rate(df: pd.DataFrame, output_dir: str) -> Non
         
 def generate_all_advanced_charts(data: Dict, stats: Dict = None, output_dir: str = DEFAULT_OUTPUT):
     """
-    Hàm chính tạo ĐỦ 33 BIỂU ĐỒ phân tích nâng cao
+    Hàm chính tạo ĐỦ 33 BIỂU ĐỒ phân tích 
     """
     df = data["df"]
     top_provinces = data.get("top_provinces", [])

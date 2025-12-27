@@ -7,7 +7,25 @@ def export_dataset_description_to_excel(
     filename: str = "Mô_tả_dataset_1.xlsx"
 ):
     """
-    Xuất mô tả dataset CHI TIẾT & ĐẸP như báo cáo luận văn (ĐÃ FIX LỖI 100%).
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame đã được tiền xử lý, phải chứa ít nhất các cột:
+        - 'score' hoặc 'rating' (điểm số)
+        - 'positive_comment'
+        - 'combined_text'
+        - 'room_type'
+        - 'group_type'
+        - 'stay_duration'
+    output_folder : str, default "output/analysis_results"
+        Thư mục lưu file Excel kết quả
+    filename : str, default "Mô_tả_dataset_1.xlsx"
+        Tên file Excel đầu ra (nên giữ đuôi .xlsx)
+
+    Returns
+    -------
+    None
+        Chỉ tạo file Excel tại đường dẫn chỉ định.
     """
     output_path = Path(output_folder) / filename
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -36,7 +54,7 @@ def export_dataset_description_to_excel(
         }
         pd.DataFrame(overview_data).to_excel(writer, sheet_name='Tổng quan', index=False)
 
-        # ─────────────────────── Sheet 2: Thông tin chung (ĐÃ FIX LỖI) ───────────────────────
+        # ─────────────────────── Sheet 2: Thông tin chung  ───────────────────────
         info_lines = [
             ["Dataset sau khi lọc tiếng Việt và làm sạch"],
             [""],
@@ -47,7 +65,7 @@ def export_dataset_description_to_excel(
         ]
         info_lines.extend([f"• {col} ({dtype})" for col, dtype in df.dtypes.items()])
 
-        # FIX: Tạo DataFrame đúng cách (1 cột duy nhất)
+        # Tạo DataFrame đúng cách (1 cột duy nhất)
         info_df = pd.DataFrame({"Mô tả": info_lines})
         info_df.to_excel(writer, sheet_name='Thông tin chung', index=False)
 
